@@ -44,6 +44,34 @@ my @aRefNames = ( "baseVs",         # array of names which can be recopied
                   "ainfC" );
 
 
+<<q=~q>>;
+Functions "declarations" (not necessary part)
+sub test_func {
+sub my_default_vals {
+sub recopy_arr {
+sub set_array_fromRef {
+sub maxXYZ {
+sub test_shift {
+sub add_atoms_vSTR {
+sub read_poscar {
+sub new_struct_hcp_Mg {
+sub new_struct_hcp {
+sub new_struct_hcp_v {
+sub new_struct_fcc {
+sub new_struct_bcc {
+sub new_struct_diamond {
+sub new_struct_sc {
+sub new_struct_single {
+sub new_struct_gre {
+sub struct_base {
+sub write_poscar {
+sub write_xsf {
+sub get_atom_type {
+sub distort_bvs {
+sub distort_pos {
+sub mat3_mult {
+q
+
 #### ================================= ####
 ####            Subroutines            ####
 #### ================================= ####
@@ -111,7 +139,21 @@ sub set_array_fromRef {
   } else { print "WARNING!!! Illigal array set of $nm \n"; }
 }
 
-##sub new_
+sub maxXYZ {
+  my $self = shift;
+  my @arrR = @{ $self->ainfC };
+  my @maxXYZ = (0,0,0);
+  my $i;
+  my $refR;
+  ##print "@arrR\n";
+  foreach $refR (@arrR){
+    ##print "$refR\n";
+    for ($i=0; $i<3; $i++){
+      if ($maxXYZ[$i]<$refR->[$i]){$maxXYZ[$i]=$refR->[$i]}
+    }
+  }
+  return @maxXYZ;
+}
 
 sub test_shift {
   my $self = shift;
@@ -120,27 +162,64 @@ sub test_shift {
 sub add_atoms_vSTR {
   my $self     = shift;
   my $vaspSTR2 = $_[0];
-  my @str2off  = @{ $_[1] } // (0,0,0);
+  my @str2off;
+  if (@_ > 1) {@str2off  = @{ $_[1] };}
+  else {@str2off  = (0,0,0);}
+  #print_v(@str2off);
   if ($vaspSTR2->isDefined ne $VALOK){
     print "Error!!! Nothing to add!!! \n";
     return -1;
+  }
+  if ($self->isDefined ne $VALOK){
+    $self->my_default_vals();
   }
   my $addAtomsN = $vaspSTR2->nAtoms();
   my $nAtoms = $self->nAtoms();
   my @arrR = @{$self->ainfC()};
   my @arrX = @{$self->ainfD()};
   my @arrAddR = @{$vaspSTR2->ainfC()};
-  my @arrAddX = @{$vaspSTR2->ainfD()};
+  my @mInv = m3_Invert($self->baseVs());
+  ##my @arrAddX = @{$vaspSTR2->ainfD()};
   ##
   ##my @maxBox = ();  ## May be Need to make automatic
   ##
   for (my $i=0; $i<$addAtomsN; $i++){
-    for (my $j=0; $j<3; $j++) { 
-      $arrAddR[$i][$j] += $str2off[$j]; 
+    my @cR = (0,0,0);
+    for (my $j=0; $j<3; $j++) {
+      $cR[$j] = $arrAddR[$i][$j] + $str2off[$j];
     }
-    push(@arrR, \@arrAddR[$i]);
+    ##print($arrAddR[$i], "  \n");
+    my @cX = v3_m3_mult(\@cR,\@mInv);
+    for (my $j=0; $j<3; $j++) {
+      $arrR[$nAtoms+$i][$j] = $cR[$j];
+      $arrX[$nAtoms+$i][$j] = $cX[$j];
+    }
+    #print_v(@{$arrR[$nAtoms+$i]});
+    # @arrR[$nAtoms+$i] = ($cR[0],$cR[1],$cR[2]);
+    # @arrX[$nAtoms+$i] = ($cX[0],$cX[1],$cX[2]);
+    # push(@arrR, \@arrAddR[$i]);
+    # push(@arrX, \@cX);
   }
-  $self->nAtoms($nAtoms+$addAtomsN);
+  $nAtoms += $addAtomsN;
+  $self->nAtoms($nAtoms);
+  $self->ainfC(@arrR);
+  $self->ainfD(@arrX);
+  ## atoms types
+  my @aTnames = @{$self->atomTypeNames()};
+  my @aTnums = @{$self->atomTypeNums()};
+  my @addNames = @{$vaspSTR2->atomTypeNames()};
+  my @addNums = @{$vaspSTR2->atomTypeNums()};
+  my $nAdd = @addNames;
+  for (my $i=0; $i<$nAdd; $i++){
+    push(@aTnames,$addNames[$i]);
+    push(@aTnums,$addNums[$i]);
+  }
+  $self->atomTypeNames(@aTnames);
+  $self->atomTypeNums(@aTnums);
+  ##
+  if ($self->isDefined ne $VALOK){
+    $self->set("isDefined",$VALOK);
+  }
 } ## end add_atoms_vSTR
 
 sub read_poscar {
@@ -159,8 +238,11 @@ sub read_poscar {
   chomp $cl;
   $self->infoLine($cl);
   $cl = <FPSCR>;
-  $cl =~ /^.*([0-9]+\.[0-9]*|[0-9]+).*/;
-  my $fact = $1;
+  ##$cl =~ /^.*([0-9]+\.[0-9]*|[0-9]+).*/;
+  ##my ( $fact ) = $cl =~ /^\s*(\w+)/;
+  chomp $cl; $cl =~ s/^\s+//;
+  @arrLine = split /\s+/, $cl;
+  my $fact = $arrLine[0];
   $self->factor($fact);
   ## Base Vectors
   my @arrBVs = ([0,0,0], [0,0,0], [0,0,0]);
@@ -171,7 +253,9 @@ sub read_poscar {
     for ($j=0; $j<3; $j++){ $arrBVs[$i][$j] = $arrLine[$j]; }
   }
   $self->baseVs(@arrBVs);
-  my @mInv = m3_Invert(@arrBVs);
+  # print("\n");
+  # print_m(@arrBVs);
+  my @mInv = m3_Invert(\@arrBVs);
   ## Atoms types
   $cl = <FPSCR>;
   chomp $cl; $cl =~ s/^\s+//;
@@ -192,7 +276,7 @@ sub read_poscar {
   while ($cl = <FPSCR>) {
     if ((substr($cl,0,1) eq "D") or (substr($cl,0,1) eq "d")) { last; }
     if ((substr($cl,0,1) eq "C") or (substr($cl,0,1) eq "c")) {
-      $posType = "C"; 
+      $posType = "C";
       $self->aPosType("Cartesian");
       last;
     }
@@ -213,7 +297,7 @@ sub read_poscar {
     }
     push(@arrD,\@cD);
     push(@arrC,\@cC);
-  }  
+  }
   close FPSCR;
   $self->ainfD(@arrD);
   $self->ainfC(@arrC);
@@ -262,7 +346,7 @@ sub new_struct_hcp {
 
 ## <<<<<<<<<<<<<<<<<<<<<<<============================================= !!!
 ## TODO: finish the function !!!
-## <<<<<<<<<<<<<<<<<<<<<<<============================================= !!! 
+## <<<<<<<<<<<<<<<<<<<<<<<============================================= !!!
 sub new_struct_hcp_v {
   my $self = shift;
   ##   <<<   Input parameters   >>>   ##
@@ -483,6 +567,7 @@ sub write_poscar {
   my $nAtomTypes = @atpNames;
   my $fixStyle = " T  T  T";
   my @ainfD = @{$self->ainfD};
+  my @ainfC = @{$self->ainfC};
   open(FPSCR, ">$fn") or die "Could not open $fn: $!";
   print FPSCR $self->infoLine, "\n";
   print FPSCR $self->factor ," \n";
@@ -498,9 +583,15 @@ sub write_poscar {
   for ($i=0; $i<=$nAtomTypes; $i++){print FPSCR $atpNums[$i],'   ';}
   print FPSCR '   ', "\n";
   print FPSCR "Selective dynamics \n";
-  print FPSCR "Direct \n";
+  my $posType = $self->aPosType();
+  print FPSCR "$posType \n";
   for ($i = 0; $i<$self->nAtoms; $i++){
-    printf FPSCR ' %15.12f %15.12f %15.12f %s', $ainfD[$i][0], $ainfD[$i][1], $ainfD[$i][2], $fixStyle;
+    if ($posType eq "Cartesian"){
+      printf FPSCR ' %15.12f %15.12f %15.12f', $ainfC[$i][0], $ainfC[$i][1], $ainfC[$i][2];
+    } else {
+      printf FPSCR ' %15.12f %15.12f %15.12f', $ainfD[$i][0], $ainfD[$i][1], $ainfD[$i][2];
+    }
+    printf FPSCR ' %s',$fixStyle;
     print FPSCR "\n";
   }
   close FPSCR;
@@ -563,98 +654,6 @@ sub get_atom_type {
   my $tp = $atomTypeNames[$ct-1];
   return $tp;
 }
-
-## DEPRECATED!!! )))
-sub new_from_poscar {
-  my $self = shift;
-  if ($self->isDefined eq $VALOK){
-    print "Warning!!! Previous structure will be destroyed\n";
-  }
-  ##   <<<   Input parameters   >>>   ##
-  my $fn = $_[0] // $FNPOSCAR;
-  ##   <<<   ----------------   >>>   ##
-  my $i = 0; my $j = 0; my $ix = 0; my $iy = 0;
-  my $cl;
-  my @arrLine;
-  my @baseVectors = map {[0,0,0]} 1..3;
-  my $nAtoms;
-  my $nTypes;
-  my @atpNames;
-  my @atpNums;
-  my @ainfD;
-  my @ainfC;
-  $self->my_default_vals();
-  open(FPSCR, "<$fn") or die "Could not open $fn: $!";
-  $cl = <FPSCR>;
-  chomp $cl; $cl =~ s/^\s+//;
-  $self->infoLine($cl);
-  $cl = <FPSCR>;
-  chomp $cl; $cl =~ s/^\s+//;
-  $self->factor($cl);
-  for ($i=0; $i<3; $i++){
-    $cl = <FPSCR>;
-    chomp $cl; $cl =~ s/^\s+//;
-    @arrLine = split /\s+/, $cl;
-    for ($j=0; $j<3; $j++){$baseVectors[$i][$j] = $arrLine[$j]}
-  }
-  $self->baseVs(@baseVectors);
-  $self->nCellsArr([1,1,1]);
-  ## Atoms types
-  $cl = <FPSCR>;
-  chomp $cl; $cl =~ s/^\s+//;
-  @arrLine = split /\s+/, $cl;
-  $nTypes = @arrLine;
-  $self->atomTypeNames(\@arrLine);
-  $self->recopy_arr("atomTypeNames");
-  ## Atoms number
-  $cl = <FPSCR>;
-  chomp $cl; $cl =~ s/^\s+//;
-  @arrLine = split /\s+/, $cl;
-  $self->atomTypeNums(\@arrLine);
-  $self->recopy_arr("atomTypeNums");
-  $nAtoms = 0;
-  foreach $i (@arrLine) {$nAtoms += $i}
-  $self->nAtoms($nAtoms);
-  ## Dynamic type
-  $cl = <FPSCR>;
-  chomp $cl; $cl =~ s/^\s+//;
-  $self->dynType($cl);
-  ## Atoms coords type
-  $cl = <FPSCR>;
-  chomp $cl; $cl =~ s/^\s+//; $cl =~ s/\s+$//;
-  $self->aPosType($cl);
-  ##print "<$cl>\n";
-  if ($cl ne "Direct"){print "ERROR!!! I AM DESIGNED TO READ ONLY Direct COORDINATES\n"}
-  $i = 0;
-  while ($cl = <FPSCR>){
-    if ($i == $nAtoms){last;}
-    $i++;
-    chomp $cl; $cl =~ s/^\s+//;
-    @arrLine = split /\s+/, $cl;
-    push(@ainfD,[$arrLine[0],$arrLine[1],$arrLine[2]]);
-    my @cvAC = (0,0,0);
-    for ($ix = 0; $ix<3; $ix++){
-      for ($iy = 0; $iy<3; $iy++){$cvAC[$ix] += $ainfD[$i-1][$iy]*$baseVectors[$iy][$ix]}
-    }
-    push(@ainfC, \@cvAC);
-  }
-  close FPSCR;
-  $self->ainfC(@ainfC);
-  $self->ainfD(@ainfD);
-  $self->set("isDefined",$VALOK);
-
-  ## check
-  #print "\n";
-  #print "atoms Types: \n";
-  #map { print $_,"   " } @{$self->atomTypeNames};
-  #print "\n";
-  #print "atoms Numbers: \n";
-  #map { print $_,"   " } @{$self->atomTypeNums};
-  #print "\n";
-  #print "Atom 2    [ ", $ainfD[1][0]," ",$ainfD[1][1]," ",$ainfD[1][2], " ]\n";
-  #print "Atom 2 d  [ ", $ainfC[1][0]," ",$ainfC[1][1]," ",$ainfC[1][2], " ]\n";
-  #print "\n";
-} ## new_from_poscar
 
 sub distort_bvs {
   my $self = shift;

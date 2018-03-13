@@ -1,0 +1,48 @@
+SYSTEM =Mg
+
+# # Whoke
+PREC =HIGH
+ENCUT = 400
+# # GGA  = 91
+# # NBANDS
+
+# # Smearing
+ISMEAR = 1
+SIGMA  = 0.1
+ISPIN  = 2
+
+IALGO = 38
+ISYM = 0
+MAGMOM = 192*2 0*17
+
+# # Algorithm
+IBRION = -1
+ISIF   = 2
+EDIFF  = 1.0E-7
+EDIFFG = -1.0E-2
+NSW    = 1
+LREAL= False
+
+LWAVE   =  .TRUE.
+LCHARGE =  .TRUE.
+LVTOT   =  .TRUE.
+LVHAR   =  .TRUE.
+
+#Parallel
+LPLANE = .FALSE.
+NPAR   = 7
+#NSIM   = 1
+
+# # Others
+AMIX  = 0.08
+BMIX  = 1.0
+ICHARG = 2
+
+
+# # DOS
+##ICHARG=11
+##NSW   =0
+SIGMA =0.2
+EMIN  =-10
+EMAX  =10
+LORBIT = 10

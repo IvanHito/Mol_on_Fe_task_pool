@@ -3,10 +3,10 @@
 package MyUseful;
 use Exporter;
 @ISA = ('Exporter');
-@EXPORT = ('print_v', 
+@EXPORT = ('print_v',
            'print_m',
-           'v3_mult', 
-           'v3_mod', 
+           'v3_mult',
+           'v3_mod',
            'v3_m3_mult',
            'm3_v3_mult',
            'm3_mult',
@@ -87,7 +87,7 @@ sub m3alaV_Invert {
   my $mDet = ($m[0]*$m[4]*$m[8] + $m[1]*$m[5]*$m[6] + $m[2]*$m[3]*$m[7]
     - $m[2]*$m[4]*$m[6] - $m[1]*$m[3]*$m[8] - $m[0]*$m[5]*$m[7]);
   if ( float_eq($mDet,0)){
-    print("PAY ATTANTION determinant is 0");
+    print("PAY ATTANTION determinant is 0\n");
     return @mInv;
   }
   $mInv[0] =  ($m[4]*$m[8]-$m[5]*$m[7])/$mDet;
@@ -105,10 +105,12 @@ sub m3alaV_Invert {
 sub m3_Invert {
   my @m = @{$_[0]};
   my @mInv;
+  # print("\n");
+  # print_m(@m);
   my $mDet = ($m[0][0]*$m[1][1]*$m[2][2] + $m[0][1]*$m[1][2]*$m[2][0] + $m[0][2]*$m[1][0]*$m[2][1]
     - $m[0][2]*$m[1][1]*$m[2][0] - $m[0][1]*$m[1][0]*$m[2][2] - $m[0][0]*$m[1][2]*$m[2][1]);
   if ( float_eq($mDet,0)){
-    print("PAY ATTANTION determinant is 0");
+    print("PAY ATTANTION determinant is 0\n");
     return @mInv;
   }
   $mInv[0][0] =  ($m[1][1]*$m[2][2]-$m[1][2]*$m[2][1])/$mDet;
@@ -128,7 +130,7 @@ sub m3_mult {
   my @m2 = @{$_[1]};
   my @m = ([0,0,0],[0,0,0],[0,0,0]);
   for(my $i = 0; $i < 3; $i++){
-    for(my $j = 0; $j < 3; $j++){ 
+    for(my $j = 0; $j < 3; $j++){
       for(my $k = 0; $k < 3; $k++){$m[$i][$j] += $m1[$i][$k]*$m2[$k][$j];}
     }
   }

@@ -171,7 +171,7 @@ while($cl = <FPOOL>){
     if ($foundDone == 0){print $ftmp $clCp;}
     next;
   }
-  if (($tState eq "done") or ($tState eq "!!!fail!!!") or ($tState eq "skip")) 
+  if (($tState eq "done") or ($tState eq "!!!fail!!!") or ($tState eq "skip"))
 		{print $ftmp $clCp; next;}
   $npDemand = $arrLine[2];
   if ($pInUse + $npDemand > $maxProc){print $ftmp $clCp; next;}
@@ -231,7 +231,7 @@ print "\n";
 
 sub write_pool_str{
   my $fh = $_[0];
-  my $pStr = sprintf("  %05d     %25s  %2d  %20s  %8s  %8d  %8d\n",
+  my $pStr = sprintf("  %05d     %30s  %2d  %20s  %8s  %8d  %8d\n",
     $_[1],$_[2],$_[3],$_[4],$_[5],$_[6],$_[7]);
   print $fh $pStr;
 }

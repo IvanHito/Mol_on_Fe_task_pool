@@ -11,16 +11,18 @@ our $gSubLevel = 0;
 our $gFnLog = "log";
 our $gFLog;
 our $gDbgStr;
-our $gBasePath = "/home/ivan/git/Perl_task_pool";      ## should be same as in manage_pool.pl
-##our $gBasePath = "/Users/ivanl/git/Perl_task_pool";    ## should be same as in manage_pool.pl
+##our $gBasePath = "/home/ivan/Mol_on_Fe/task_pool";      ## should be same as in manage_pool.pl
+our $gBasePath = "/Users/ivanl/Ivan/work/Mol_on_Fe/task_pool";    ## should be same as in manage_pool.pl
 our $gFldData = "data";                                      ## should be same as in manage_pool.pl
 our $gFnPool = "pool";                                       ## should be same as in manage_pool.pl
 ##our $gFldDummy = "task_dummy_gre";
-our $gFldDummy = "task_dummy";
-our $gFldAllData = "all_data_files";
+our $gFldDummy = "task_dummy_FeMol1";
+our $gFldAllData = "all_xsf_files";
 
 use lib "$::gBasePath";
 use vaspSTRUCT;
+use MyUseful;
+
 
 ###############################################################################
 ##                           Structure Constants                             ##
@@ -57,7 +59,8 @@ if ($ctrl eq "help"){
 ##mg_struct_set_2_distortion();
 ##mg_struct_hcp_vacancy();
 ##mg_struct_hcp_dist_rand_vacancy();
-vaspModuleTest();
+##vaspModuleTest();
+mol1_onFe_test();
 
 ###############################################################################
 ##                            sub declarations                               ##
@@ -68,9 +71,89 @@ vaspModuleTest();
 #  ##   <<<   ----------------   >>>   ##
 #}
 
+sub mol1_onFe_test{
+  ##   <<<   Input parameters   >>>   ##
+  ##   <<<   ----------------   >>>   ##
+  print("\n");
+  print("Prepairing data for test.\n");
+  my $tInfo; my $tPath; my $fnPscr; my $fnXsf; ##my $vsFe; my $vsMol;
+  my $d = 3.0;
+  my $dd = 0.2;
+  my $nProcs = 56;
+  for (my $i=0; $i<10; $i++){
+    $tInfo = sprintf("mol1onFeS3GB_a55_h%.1f",$d);
+    print "   Mol1 on Fe with s3GB task $tInfo\n";
+    $tPath = new_task($tInfo,$nProcs,1);
+    $fnPscr = "$::gBasePath/$::gFldData/$tPath/VASP/POSCAR";
+    $fnXsf = "$::gFldAllData/$tInfo.xsf";
+    put_mol1_on_Fe(0,0,$d,$fnPscr,$fnXsf);
+    $d += $dd;
+    print("\n");
+  }
+  print("Done\n");
+  print("\n");
+}
+
+sub put_mol1_on_Fe{
+  ##   <<<   Input parameters   >>>   ##
+  my $posX   = shift // 0.0;
+  my $posY   = shift // 0.0;
+  my $distZ  = shift // 5.0;
+  my $fnPOS  = shift // "POSCAR_FeMol1";
+  my $fnXsf  = shift // "data_FeMol1.xsf";
+  ##   <<<   ----------------   >>>   ##
+  ## controls:
+  my $anchAtomN = 55;
+  my $minH = 10;
+  my $vsFe = vaspSTRUCT->new();
+  $vsFe->read_poscar("../structures/POSCAR_FeS3GB_1");
+  my $vsMol = vaspSTRUCT->new();
+  $vsMol->read_poscar("../structures/POSCAR_Mol_1");
+  ##
+  #print("\n");
+  my $rArrR = $vsFe->ainfC();
+  my @offR = ($posX,$posY,$distZ);
+  for (my $i=0; $i<3; $i++) {
+    $offR[$i] += $rArrR->[$anchAtomN-1]->[$i];
+  }
+  #print_v(@offR);
+  $vsFe->add_atoms_vSTR($vsMol, \@offR);
+  ## check cell hight
+  my @maxXYZ = $vsFe->maxXYZ();
+  if ($vsFe->baseVs->[2]->[2] < $maxXYZ[2] + $minH) {
+    $vsFe->baseVs->[2]->[2] = $maxXYZ[2] + $minH;
+    my @mInv = m3_Invert($vsFe->baseVs());
+    for (my $i=0; $i<$vsFe->nAtoms; $i++) {
+      my @cR = @{$vsFe->ainfC->[$i]};
+      my @cX = v3_m3_mult(\@cR,\@mInv);
+      $vsFe->ainfD->[$i] = \@cX;
+    }
+  }
+  $vsFe->write_poscar($fnPOS);
+  $vsFe->write_xsf($fnXsf);
+  print("$fnPOS was written\n");
+  ##print("Done \n");
+  #print("\n");
+}
+
 sub vaspModuleTest{
   ##   <<<   Input parameters   >>>   ##
   ##   <<<   ----------------   >>>   ##
+  print("\n");
+  my $vsFe = vaspSTRUCT->new();
+  $vsFe->read_poscar("../structures/POSCAR_FeS3GB_1");
+  my $vsMol = vaspSTRUCT->new();
+  $vsMol->read_poscar("../structures/POSCAR_Mol_1");
+  my $nBorderAtom = 55;
+  my $rArrR = $vsFe->ainfC();
+  my @offR = (0,0,0);
+  for (my $i=0; $i<3; $i++) { $offR[$i] = $rArrR->[$nBorderAtom]->[$i]; }
+  $offR[2] += 5.0;
+  $vsFe->add_atoms_vSTR($vsMol, \@offR);
+  $vsFe->write_poscar("POSCAR_Fe_Mol");
+
+  print("Done \n");
+  print("\n");
 } ## vaspModuleTest
 
 sub mg_struct_hcp_dist_rand_vacancy {
@@ -544,7 +627,7 @@ sub test_1{
 
 sub write_pool_str{
   my $fh = $_[0];
-  my $pStr = sprintf("  %05d     %25s  %2d  %20s  %8s  %8d  %8d\n",
+  my $pStr = sprintf("  %05d     %30s  %2d  %20s  %8s  %8d  %8d\n",
     $_[1],$_[2],$_[3],$_[4],$_[5],$_[6],$_[7]);
   print $fh $pStr;
 }
@@ -578,7 +661,7 @@ sub new_task {
   my $foundData = 0;
   my $lastTaskN = 0;
   my $lastDataN = 0;
-  opendir my $dir, $::gBasePath or die "Cannot open directory: $!";
+  opendir my $dir, $::gBasePath or die "Cannot open directory: $! <$::gBasePath>";
   my @files = readdir $dir;
   closedir $dir;
   foreach my $cfile (@files){
@@ -598,7 +681,8 @@ sub new_task {
     write_log_line($::gDbgStr, "No Arrow");
     open(FPOOL, ">>$::gBasePath/$::gFnPool") or die "Could not open $::gFnPool: $!";
     print FPOOL ("## \$gBasePath = $::gBasePath\n## All paths are in Base Path. \n");
-    print FPOOL ("## nTask              name     nc          path           status     dNBeg     sNEnd\n");
+    print FPOOL ("## nTask                      name          nc");
+    print FPOOL ("          path           status       dNBeg     sNEnd\n");
     close FPOOL;
   }
   if ($foundData == 0){
