@@ -16,7 +16,7 @@ cd ../
 
 rm RUN
 mkdir result
-./extract_dyn.pl $1 > extrct_log
+./extract_dyn.pl $1 > log_extract
 touch DONE
 
 chmod +x restart_manager.sh

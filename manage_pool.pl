@@ -8,11 +8,11 @@ use strict;
 ###############################################################################
 
 our $gSubLevel = 0;
-our $gFnLog = "/home/ivan/git/Perl_task_pool/log";
+our $gFnLog = "/home/ivan/Mol_on_Fe/task_pool/log";
 our $gFLog;
 our $gDbgStr;
 
-my $basePath = "/home/ivan/git/Perl_task_pool";     ## should be same as in add_task.pl
+my $basePath = "/home/ivan/Mol_on_Fe/task_pool";     ## should be same as in add_task.pl
 my $fldData = "data";                                     ## should be same as in add_task.pl
 my $fnPool = "pool";                                      ## should be same as in add_task.pl
 my $maxProc = 56;         ## maximum processors in use

@@ -29,7 +29,7 @@ print "\n";
 ###############################################################################
 
 sub extract_crystal_from_dyn{
-  if (@_ < 4) {die "ERROR! Not enough parameters for extract_crystal_from_dyn";}
+  if (@_ < 4) {die "extract_dyn.pl: ERROR! Not enough parameters for extract_crystal_from_dyn";}
   ##   <<<   Input parameters   >>>   ##
   my $outFn = $_[0];         ## Name of OUTCAR file
   my $iterN = $_[1];         ## number of iteration (it may be "last" to extract last iteration)
@@ -66,7 +66,7 @@ sub extract_crystal_from_dyn{
       if (($itFound == $iterN) and ($iterN ne "last")) {last;}
     }
   }
-  if ($itFound == 0){die "ERROR!!! THE FILE CONTAINS NOTHING!\n\n";}
+  if ($itFound == 0){die "extract_dyn.pl: ERROR!!! THE FILE CONTAINS NOTHING!\n\n";}
   if ($iterN eq "last"){
     close $fo;
     $iterN = $itFound;

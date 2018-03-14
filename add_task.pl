@@ -11,8 +11,8 @@ our $gSubLevel = 0;
 our $gFnLog = "log";
 our $gFLog;
 our $gDbgStr;
-##our $gBasePath = "/home/ivan/Mol_on_Fe/task_pool";      ## should be same as in manage_pool.pl
-our $gBasePath = "/Users/ivanl/Ivan/work/Mol_on_Fe/task_pool";    ## should be same as in manage_pool.pl
+our $gBasePath = "/home/ivan/Mol_on_Fe/task_pool";      ## should be same as in manage_pool.pl
+##our $gBasePath = "/Users/ivanl/Ivan/work/Mol_on_Fe/task_pool";    ## should be same as in manage_pool.pl
 our $gFldData = "data";                                      ## should be same as in manage_pool.pl
 our $gFnPool = "pool";                                       ## should be same as in manage_pool.pl
 ##our $gFldDummy = "task_dummy_gre";
@@ -106,9 +106,9 @@ sub put_mol1_on_Fe{
   my $anchAtomN = 55;
   my $minH = 10;
   my $vsFe = vaspSTRUCT->new();
-  $vsFe->read_poscar("../structures/POSCAR_FeS3GB_1");
+  $vsFe->read_poscar("$::gBasePath/structures/POSCAR_FeS3GB_1");
   my $vsMol = vaspSTRUCT->new();
-  $vsMol->read_poscar("../structures/POSCAR_Mol_1");
+  $vsMol->read_poscar("$::gBasePath/structures/POSCAR_Mol_1");
   ##
   #print("\n");
   my $rArrR = $vsFe->ainfC();
