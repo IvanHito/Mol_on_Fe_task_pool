@@ -1,0 +1,11 @@
+# ignore all (but .gitignore) hidden files in current dir 
+/.*
+!/.gitignore
+
+# ignore specified folders and files
+/all_xsf_files/
+/data/
+pool
+p_done
+p_run
+/log
